@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每日问候邮件 · 操作后台</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --line: #e4e7ec; --txt: #1f2430;
+    --sub: #667085; --accent: #2f6fed; --accent-dark: #2257c4;
+    --ok: #12855f; --bad: #c93b3b; --warn-bg: #fff7e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: var(--bg); color: var(--txt); padding-bottom: 90px; }
+  header { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 28px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .status { font-size: 12px; color: var(--sub); }
+  .spacer { flex: 1; }
+  main { max-width: 960px; margin: 24px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 20px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; }
+  section > h2 { font-size: 15px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  section > h2 .hint { font-size: 12px; font-weight: 400; color: var(--sub); }
+  .row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); flex-wrap: wrap; }
+  .row:last-child { border-bottom: none; }
+  label { font-size: 12px; color: var(--sub); }
+  input[type=text], input[type=password], input[type=time], input[type=number], input[type=date], select {
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 13px; background: #fff; color: var(--txt); }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #bcd0f7; border-color: var(--accent); }
+  textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-size: 13px; font-family: Consolas, monospace; min-height: 90px; resize: vertical; background: #fff; color: var(--txt); }
+  button { border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; background: var(--accent); color: #fff; }
+  button:hover { background: var(--accent-dark); }
+  button.ghost { background: #eef1f6; color: var(--txt); border: 1px solid var(--line); }
+  button.ghost:hover { background: #e2e7ef; }
+  button.danger { background: #fdecec; color: var(--bad); border: 1px solid #f3c8c8; }
+  button.small { padding: 4px 10px; font-size: 12px; }
+  button:disabled { opacity: .5; cursor: wait; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .field > span { font-size: 12px; color: var(--sub); }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; background: #fbfcfe; }
+  .card h3 { font-size: 13px; margin-bottom: 10px; display:flex; align-items:center; gap:8px; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; background: #e8f0fe; color: var(--accent); }
+  .switch { position: relative; width: 36px; height: 20px; display: inline-block; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #cbd2dd; border-radius: 99px; transition: .2s; cursor: pointer; }
+  .slider:before { content: ""; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: var(--ok); }
+  .switch input:checked + .slider:before { transform: translateX(16px); }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #23272f; color: #fff; padding: 10px 22px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: .3s; z-index: 99; max-width: 80vw; }
+  #toast.show { opacity: 1; }
+  #toast.err { background: var(--bad); }
+  pre.preview { background: #f4f6fa; border: 1px solid var(--line); border-radius: 8px; padding: 12px; font-size: 12px; white-space: pre-wrap; font-family: Consolas, monospace; max-height: 320px; overflow: auto; }
+  #logBox { max-height: 260px; }
+  .toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line); padding: 12px 28px; display: flex; gap: 12px; align-items: center; z-index: 10; }
+  .slot-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .slot-tabs button { background: #eef1f6; color: var(--txt); }
+  .slot-tabs button.active { background: var(--accent); color: #fff; }
+  .muted { color: var(--sub); font-size: 12px; }
+  #loginMask { position: fixed; inset: 0; background: rgba(24,28,38,.55); display: flex; align-items: center; justify-content: center; z-index: 50; }
+  #loginMask .box { background: #fff; border-radius: 14px; padding: 32px 36px; width: 340px; box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+  #loginMask h2 { font-size: 16px; margin-bottom: 6px; }
+  #loginMask p { font-size: 12px; color: var(--sub); margin-bottom: 16px; }
+  #loginMask input { width: 100%; margin-bottom: 12px; }
+  #loginMask button { width: 100%; }
+  #loginErr { color: var(--bad); font-size: 12px; margin-bottom: 10px; min-height: 16px; }
+  .share-url { font-family: Consolas, monospace; background: #eef4ff; border: 1px solid #d4e2ff; border-radius: 6px; padding: 4px 10px; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📮 每日问候邮件 · 操作后台</h1>
+  <span class="status" id="cfgTime"></span>
+  <div class="spacer"></div>
+  <span class="status">本地服务 http://127.0.0.1:8765</span>
+</header>
+
+<main>
+  <!-- 收件人 -->
+  <section>
+    <h2>收件人 <span class="hint">邮件发给谁</span></h2>
+    <div id="recipBox"></div>
+    <button class="ghost small" onclick="addRecip()">＋ 添加收件人</button>
+  </section>
+
+  <!-- 发件邮箱 -->
+  <section>
+    <h2>发件邮箱 <span class="hint">163 邮箱用「授权码」，企业邮箱用「密码」</span></h2>
+    <div id="senderBox"></div>
+    <button class="ghost small" onclick="addSender()">＋ 添加发件邮箱</button>
+  </section>
+
+  <!-- 时段内容 -->
+  <section>
+    <h2>发送时段与内容风格 <span class="hint">句子池按日期轮换，占位符自动填入当天天气</span></h2>
+    <div class="slot-tabs" id="slotTabs"></div>
+    <div id="slotBox"></div>
+  </section>
+
+  <!-- 访问与分享 -->
+  <section>
+    <h2>访问与分享 <span class="hint">把这个地址和密码发给同网络的人即可使用</span></h2>
+    <div id="shareBox" style="margin-bottom:14px"></div>
+    <div class="grid2">
+      <div class="field"><span>后台访问密码（别人打开页面要输入的）</span>
+        <input type="text" id="pwField" oninput="cfg.admin_password=this.value"></div>
+      <div class="field"><span>允许访问的范围</span>
+        <select id="listenField" onchange="cfg.listen=this.value">
+          <option value="0.0.0.0">局域网可访问（分享模式）</option>
+          <option value="127.0.0.1">仅本机（不分享）</option>
+        </select></div>
+    </div>
+    <p class="muted">改密码或范围后需点「保存全部修改」，且重启后台服务后生效（找助手重启，或重启电脑）。首次打开 Windows 防火墙若弹窗，请选择「允许」。</p>
+  </section>
+
+  <!-- 预览 / 日志 -->
+  <section>
+    <h2>预览与日志</h2>
+    <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
+      <button class="ghost" onclick="preview('morning')">👁 预览早安信</button>
+      <button class="ghost" onclick="preview('midday')">👁 预览午安信</button>
+      <button class="ghost" onclick="preview('evening')">👁 预览晚安信</button>
+      <button onclick="if(confirm('确定现在真实发送这封信到所有收件人吗？')) sendNow('morning')">✉️ 实发早安信</button>
+      <button onclick="if(confirm('确定现在真实发送这封信到所有收件人吗？')) sendNow('midday')">✉️ 实发午安信</button>
+      <button onclick="if(confirm('确定现在真实发送这封信到所有收件人吗？')) sendNow('evening')">✉️ 实发晚安信</button>
+      <button class="ghost" onclick="showLog()">📜 查看发送日志</button>
+    </div>
+    <pre class="preview" id="outBox">预览结果会显示在这里（预览不会真的发送）。</pre>
+  </section>
+</main>
+
+<div class="toolbar">
+  <button onclick="save()">💾 保存全部修改</button>
+  <button class="ghost" onclick="reload()">↺ 放弃修改并重新加载</button>
+  <span class="muted">发送失败时脚本会自动换备用邮箱重试；改完记得保存</span>
+</div>
+<div id="loginMask" style="display:none">
+  <div class="box">
+    <h2>📮 问候邮件操作后台</h2>
+    <p>请输入访问密码</p>
+    <div id="loginErr"></div>
+    <input type="password" id="loginPw" placeholder="访问密码" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">登 录</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const SLOT_LABEL = { morning: "🌅 早安", midday: "☀️ 午安", evening: "🌙 晚安" };
+const PLACEHOLDERS = "{city} {temp_now} {feels} {tmin} {tmax} {humidity} {sunrise_short} {sunset_short} {cond} {tmin_tomorrow} {tmax_tomorrow} {cond_tomorrow} {precip_tomorrow} {diff} {date} {wind}";
+let cfg = null, curSlot = "morning";
+
+function toast(msg, err) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "show" + (err ? " err" : "");
+  setTimeout(() => t.className = "", 3000);
+}
+async function api(path, body) {
+  const opt = body ? { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) } : {};
+  const r = await fetch(path, opt);
+  if (r.status === 401) { showLogin(); throw new Error("请先登录"); }
+  const j = await r.json().catch(() => ({ error: "bad response" }));
+  if (!r.ok) throw new Error(j.error || r.status);
+  return j;
+}
+
+function showLogin() {
+  document.getElementById("loginMask").style.display = "flex";
+}
+async function login() {
+  const pw = document.getElementById("loginPw").value;
+  const r = await fetch("/api/login", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ password: pw })
+  });
+  if (r.ok) {
+    document.getElementById("loginMask").style.display = "none";
+    document.getElementById("loginErr").textContent = "";
+    reload();
+  } else {
+    document.getElementById("loginErr").textContent = "密码错误，请重试";
+  }
+}
+
+function renderShare() {
+  document.getElementById("pwField").value = cfg.admin_password || "";
+  document.getElementById("listenField").value = cfg.listen || "0.0.0.0";
+  api("/api/info").then(info => {
+    const box = document.getElementById("shareBox");
+    if ((cfg.listen || "0.0.0.0") !== "0.0.0.0") {
+      box.innerHTML = '<p class="muted">当前为「仅本机」模式，局域网内其他人无法访问。改为「局域网可访问」并保存后，这里会显示分享地址。</p>';
+      return;
+    }
+    const urls = info.lan_ips.map(ip => `<span class="share-url">http://${ip}:${info.port}</span>`).join(" &nbsp; ");
+    box.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:13px">分享地址（同网络的人打开后输入密码）：</span>${urls}</div>
+      <p class="muted" style="margin-top:6px">默认密码见下方「后台访问密码」，建议改成自己的。收到 Windows 防火墙弹窗请点「允许访问」。</p>`;
+  }).catch(() => {});
+}
+
+async function reload() {
+  cfg = await api("/api/config");
+  renderAll();
+  document.getElementById("cfgTime").textContent = "城市: " + (cfg.settings.city_cn || cfg.settings.city);
+  toast("已加载当前配置");
+}
+
+function renderAll() {
+  renderRecips(); renderSenders(); renderSlotTabs(); renderSlot(); renderShare();
+}
+
+/* ---------- 收件人 ---------- */
+function renderRecips() {
+  const box = document.getElementById("recipBox"); box.innerHTML = "";
+  cfg.recipients.forEach((r, i) => {
+    const row = document.createElement("div"); row.className = "row";
+    row.innerHTML = `
+      <label class="switch"><input type="checkbox" ${r.enabled !== false ? "checked" : ""} onchange="cfg.recipients[${i}].enabled=this.checked"><span class="slider"></span></label>
+      <input type="text" style="flex:1;min-width:220px" value="${esc(r.email)}" placeholder="someone@gmail.com" oninput="cfg.recipients[${i}].email=this.value">
+      <input type="text" style="width:140px" value="${esc(r.name || "")}" placeholder="备注名" oninput="cfg.recipients[${i}].name=this.value">
+      <button class="danger small" onclick="cfg.recipients.splice(${i},1);renderRecips()">删除</button>`;
+    box.appendChild(row);
+  });
+}
+function addRecip() { cfg.recipients.push({ email: "", name: "", enabled: true }); renderRecips(); }
+
+/* ---------- 发件邮箱 ---------- */
+function renderSenders() {
+  const box = document.getElementById("senderBox"); box.innerHTML = "";
+  cfg.senders.forEach((s, i) => {
+    const card = document.createElement("div"); card.className = "card";
+    const credField = s.password !== undefined
+      ? `<div class="field"><span>邮箱密码（企业邮箱用这个字段）</span><input type="password" value="${esc(s.password)}" oninput="cfg.senders[${i}].password=this.value"></div>`
+      : `<div class="field"><span>授权码（163/QQ 等个人邮箱用这个字段）</span><input type="password" value="${esc(s.auth_code || "")}" oninput="cfg.senders[${i}].auth_code=this.value"></div>`;
+    card.innerHTML = `
+      <h3><span class="pill">${esc(s.id)}</span>
+        <label class="switch"><input type="checkbox" ${s.enabled !== false ? "checked" : ""} onchange="cfg.senders[${i}].enabled=this.checked"><span class="slider"></span></label>
+        <span style="flex:1"></span>
+        <button class="danger small" onclick="cfg.senders.splice(${i},1);renderSenders()">删除</button></h3>
+      <div class="grid2">
+        <div class="field"><span>邮箱地址</span><input type="text" value="${esc(s.email)}" oninput="cfg.senders[${i}].email=this.value"></div>
+        <div class="field"><span>发件人显示名（收件箱里的昵称）</span><input type="text" value="${esc(s.role || "")}" oninput="cfg.senders[${i}].role=this.value"></div>
+        <div class="field"><span>SMTP 服务器</span><input type="text" value="${esc(s.smtp_host)}" oninput="cfg.senders[${i}].smtp_host=this.value"></div>
+        <div class="field"><span>端口</span><input type="number" value="${s.smtp_port}" oninput="cfg.senders[${i}].smtp_port=+this.value"></div>
+        ${credField}
+        <div class="field"><span>加密方式</span>
+          <select onchange="cfg.senders[${i}].ssl=this.value==='ssl'">
+            <option value="ssl" ${s.ssl ? "selected" : ""}>SSL（465 端口常用）</option>
+            <option value="tls" ${!s.ssl ? "selected" : ""}>STARTTLS（587 端口常用）</option>
+          </select></div>
+      </div>`;
+    box.appendChild(card);
+  });
+}
+function addSender() {
+  const id = prompt("给新邮箱起个英文代号（如 my-gmail）："); if (!id) return;
+  cfg.senders.push({ id, email: "", auth_code: "", smtp_host: "smtp.163.com", smtp_port: 465, ssl: true, role: "", enabled: true });
+  renderSenders();
+}
+
+/* ---------- 时段 ---------- */
+function renderSlotTabs() {
+  const tabs = document.getElementById("slotTabs"); tabs.innerHTML = "";
+  Object.keys(cfg.slots).forEach(k => {
+    const b = document.createElement("button");
+    b.textContent = SLOT_LABEL[k] || k;
+    if (k === curSlot) b.classList.add("active");
+    b.onclick = () => { curSlot = k; renderSlotTabs(); renderSlot(); };
+    tabs.appendChild(b);
+  });
+}
+function renderSlot() {
+  const sc = cfg.slots[curSlot];
+  const box = document.getElementById("slotBox"); box.innerHTML = "";
+  const senderOpts = cfg.senders.map(s =>
+    `<option value="${esc(s.id)}" ${s.id === sc.sender_id ? "selected" : ""}>${esc(s.id)}（${esc(s.email)}）</option>`).join("");
+
+  const card = document.createElement("div"); card.className = "card";
+  card.innerHTML = `
+    <div class="grid2">
+      <div class="field"><span>发送时间（每天自动发送的时刻）</span><input type="time" value="${esc(sc.send_time)}" onchange="cfg.slots[curSlot].send_time=this.value"></div>
+      <div class="field"><span>用哪个发件邮箱</span><select onchange="cfg.slots[curSlot].sender_id=this.value">${senderOpts}</select></div>
+      <div class="field"><span>主题格式</span><input type="text" value="${esc(sc.subject_template)}" oninput="cfg.slots[curSlot].subject_template=this.value"></div>
+      <div class="field"><span>风格说明（描述语气，供自己参考或提醒 AI）</span><input type="text" value="${esc(sc.style_notes || "")}" oninput="cfg.slots[curSlot].style_notes=this.value"></div>
+      ${sc.reminder_count !== undefined ? `<div class="field"><span>午安信里显示几条提醒</span><input type="number" min="1" max="6" value="${sc.reminder_count}" onchange="cfg.slots[curSlot].reminder_count=+this.value"></div>` : ""}
+    </div>
+    <div class="field"><span>开头句池（每行一句，每天随机选一句；可用占位符：${PLACEHOLDERS}）</span>
+      <textarea oninput="linesTo('openers', this.value)">${(sc.openers || []).join("\n\n")}</textarea></div>
+    ${sc.reminders_pool !== undefined ? `<div class="field"><span>提醒句池（每行一条，编号自动生成，不用手写 1. 2. 3.）</span>
+      <textarea oninput="linesTo('reminders_pool', this.value)">${sc.reminders_pool.join("\n")}</textarea></div>` : ""}
+    ${sc.tomorrow_lines !== undefined ? `<div class="field"><span>明日天气句池（每行一句，双空行分隔）</span>
+      <textarea oninput="linesTo('tomorrow_lines', this.value)">${sc.tomorrow_lines.join("\n\n")}</textarea></div>` : ""}
+    <div class="field"><span>结尾句池（每行一组，双空行分隔）</span>
+      <textarea oninput="linesTo('closers', this.value)">${(sc.closers || []).join("\n\n")}</textarea></div>`;
+  box.appendChild(card);
+}
+function linesTo(key, text) {
+  const sep = (key === "reminders_pool") ? "\n" : "\n\n";
+  cfg.slots[curSlot][key] = text.split(sep).map(s => s.trim()).filter(Boolean);
+}
+
+/* ---------- 操作 ---------- */
+async function save() {
+  try {
+    const r = await api("/api/save", { config: cfg });
+    toast("已保存 ✓（自动备份到 config.backup.json）");
+  } catch (e) { toast("保存失败: " + e.message, true); }
+}
+async function preview(slot) {
+  const box = document.getElementById("outBox");
+  box.textContent = "正在生成预览…";
+  try {
+    const r = await api("/api/preview", { slot });
+    box.textContent = `【${SLOT_LABEL[slot]} 预览】\n主题: ${r.subject}\n\n${r.body}`;
+  } catch (e) { box.textContent = "预览失败: " + e.message; }
+}
+async function sendNow(slot) {
+  const box = document.getElementById("outBox");
+  box.textContent = `正在真实发送${SLOT_LABEL[slot]}信…（可能需要几秒）`;
+  try {
+    const r = await api("/api/send", { slot });
+    box.textContent = `【发送结果】\n主题: ${r.subject}\n\n` +
+      r.results.map(x => x.ok ? `✅ ${x.to}（经 ${x.via} 发出）` : `❌ ${x.to}: ${x.error}`).join("\n");
+  } catch (e) { box.textContent = "发送失败: " + e.message; }
+}
+async function showLog() {
+  try {
+    const r = await api("/api/logs");
+    document.getElementById("outBox").textContent = r.log || "暂无日志";
+  } catch (e) { toast("读取日志失败: " + e.message, true); }
+}
+function esc(s) { return String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+
+// 未登录时接口返回 401，自动弹出登录框；已登录则正常加载
+api("/api/config").then(() => {}).catch(() => {});
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+{
+  "_说明": "配置模板。由 setup.py 自动生成本文件的正式版（config.json），也可以手动复制本文件改名后填写。凭据只保存在本地，不会上传。",
+
+  "admin_password": "CHANGE_ME",
+  "_改密码": "操作后台的访问密码，分享给别人的就是这个密码",
+
+  "listen": "0.0.0.0",
+  "_说明": "0.0.0.0=局域网内其他人可访问；改成 127.0.0.1 则仅本机可用",
+
+  "settings": {
+    "city": "Beijing",
+    "city_cn": "北京",
+    "latitude": 39.9042,
+    "longitude": 116.4074,
+    "language": "en",
+    "_改城市": "换城市需同时改 city / city_cn / latitude / longitude 四项"
+  },
+
+  "recipients": [
+    { "email": "", "name": "", "enabled": true }
+  ],
+
+  "senders": [
+    {
+      "id": "sender-1",
+      "email": "",
+      "auth_code": "",
+      "smtp_host": "smtp.163.com",
+      "smtp_port": 465,
+      "ssl": true,
+      "role": "Morning",
+      "enabled": true,
+      "_说明": "网易163/126邮箱：auth_code 填授权码（登录邮箱网页版 → 设置 → POP3/SMTP/IMAP 获取）；企业邮箱用 password 字段替代 auth_code"
+    }
+  ],
+
+  "fallback_sender_id": "sender-1",
+
+  "slots": {
+    "morning": {
+      "send_time": "07:30",
+      "sender_id": "sender-1",
+      "emoji": "☀️",
+      "title": "Good morning",
+      "subject_template": "Good morning - {date} | {city}, {cond}, {tmin}–{tmax}°C",
+      "style_notes": "温和诗意。引用日出时间、体感温度、当日温差。节奏舒缓，用短句。",
+      "openers": [
+        "Good morning.\n\nThe sun was up at {sunrise_short} and the sky is {cond}.\nIt is {temp_now}°C right now, though it feels closer to {feels}°C —\nthe air is dry and honest about it.",
+        "Good morning.\n\nA quiet {cond} start in {city} today. {temp_now}°C on the thermometer,\n{feels}°C on your skin. The sun came up at {sunrise_short}, unhurried.",
+        "Good morning.\n\n{cond_capital} skies over {city} this morning. The day will move\nbetween {tmin}°C and {tmax}°C, and it begins cooler than it looks."
+      ],
+      "closers": [
+        "Autumn mornings like this don't ask much of you.\nJust a warmer jacket, a full water bottle, and one small thing to begin with.\n\nHave a good one.",
+        "Nothing urgent lives in the first hour of a day like this.\nStart slow, start warm.\n\nHave a good one.",
+        "The day is long, but mornings are short.\nTake yours before it goes.\n\nHave a good one."
+      ]
+    },
+    "midday": {
+      "send_time": "12:30",
+      "sender_id": "sender-1",
+      "emoji": "🍜",
+      "title": "Midday check-in",
+      "subject_template": "Midday check-in - {date} | {city}, drink water, {tmax}°C at the warmest",
+      "style_notes": "利落实用。带编号的 2-3 条实用提醒（饮水、湿度、日落、温差），语气轻快直接。",
+      "openers": [
+        "Midday.\n\nQuick numbers: around {tmax}°C at the warmest point of the day,\nhumidity at {humidity}%, sun until {sunset_short}."
+      ],
+      "reminders_pool": [
+        "One full glass of water - the air is at {humidity}% humidity and you will feel it by evening if you skip this.",
+        "Eat something warm at noon. The afternoon is easier after a proper lunch.",
+        "If you are heading out, go before late afternoon. The light goes at {sunset_short}.",
+        "Step away from the screen for five minutes after lunch. Your eyes will thank you.",
+        "Tonight drops to {tmin_tomorrow}°C - if you leave late, take the warmer layer.",
+        "Half the day is done. Let the other half be calm."
+      ],
+      "reminder_count": 3,
+      "closers": [
+        "Keep going. Slowly is fine.\n\nMidday, and moving.",
+        "Nothing else. That's the whole list.\n\nMidday, and moving.",
+        "The rest can wait until it can't.\n\nMidday, and moving."
+      ]
+    },
+    "evening": {
+      "send_time": "22:00",
+      "sender_id": "sender-1",
+      "emoji": "🌙",
+      "title": "Good night",
+      "subject_template": "Good night - {date} | {city}, tomorrow dips to {tmin_tomorrow}°C",
+      "style_notes": "安静反思。侧重明日气温对比与入睡前宽慰的话。",
+      "openers": [
+        "Good night.\n\nThe day is mostly behind you now, and the sky over {city}\nis still {cond}."
+      ],
+      "tomorrow_lines": [
+        "One thing worth knowing before you sleep: tomorrow morning drops to {tmin_tomorrow}°C -\nnearly {diff} degrees different from this morning. {cond_tomorrow_capital} skies, {precip_tomorrow}.",
+        "Before you sleep, the weather: tomorrow runs {tmin_tomorrow}°C to {tmax_tomorrow}°C, {cond_tomorrow}.\nThe first hour outside will be the coldest one you meet all day."
+      ],
+      "closers": [
+        "Tomorrow's list can wait until tomorrow. It will still be there,\nand you will be better at it after sleeping.\n\nMay tonight be deep, and may waking be gentle.\nGood night.",
+        "Whatever is unfinished does not need you tonight.\nIt will get a better version of you in the morning.\n\nGood night.",
+        "Put the day down gently. It held more than you noticed,\nand you carried it further than you had to.\n\nGood night."
+      ]
+    }
+  },
+  "_改风格": "openers/closers/reminders_pool 是句子池，脚本每天按日期轮换组合，可随意增删改写句子；占位符说明见 daily_greeting.py 顶部注释；想换语言直接把句子改成中文或其他语言"
+}
