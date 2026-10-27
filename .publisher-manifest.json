@@ -1,0 +1,24 @@
+{
+  "generated": [
+    ".gitignore",
+    "README.md"
+  ],
+  "excludes": [
+    ".workbuddy/",
+    "__pycache__/",
+    "logs/",
+    "node_modules/",
+    ".git/",
+    "config.json",
+    "config.backup.json",
+    ".env",
+    "*.pyc",
+    "*.pyo",
+    "Thumbs.db",
+    ".DS_Store",
+    "daemon.out",
+    "daemon.err",
+    "*.local"
+  ],
+  "updated": "2026-10-27T14:00:15"
+}
