@@ -1,8 +1,5 @@
 {
-  "generated": [
-    ".gitignore",
-    "README.md"
-  ],
+  "generated": [],
   "excludes": [
     ".workbuddy/",
     "__pycache__/",
@@ -20,5 +17,5 @@
     "daemon.err",
     "*.local"
   ],
-  "updated": "2026-10-27T14:00:15"
+  "updated": "2026-10-27T14:01:32"
 }
